@@ -41,12 +41,6 @@ sudo tee /etc/nginx/sites-available/photo-share << EOF
 server {
     listen 80;
     server_name varabey.online;
-    return 301 https://\$server_name\$request_uri;
-}
-
-server {
-    listen 443;
-    server_name varabey.online;
 
     location / {
         proxy_pass http://127.0.0.1:5000;
