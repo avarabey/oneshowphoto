@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+# В начале файла добавьте импорты, если их нет
+from flask import jsonify
 import uuid
 from datetime import datetime
 import json
@@ -51,6 +53,7 @@ class PhotoView(db.Model):
     user_agent = db.Column(db.Text)
     referrer = db.Column(db.Text)
 
+# Убедимся, что модель PhotoLink определена до её использования
 class PhotoLink(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'), nullable=False)

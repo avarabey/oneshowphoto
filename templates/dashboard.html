@@ -235,7 +235,16 @@
                 {% endif %}
                 
                 <!-- Здесь будут отображаться дополнительные ссылки -->
-                <div id="additional-links-{{ photo.id }}"></div>
+                <div id="additional-links-{{ photo.id }}">
+                    {% for link in photo.additional_links %}
+                        {% if not link.used %}
+                        <div class="link-row">
+                            <input type="text" class="link-input" value="{{ request.url_root }}share/{{ link.token }}" readonly>
+                            <button class="copy-btn" onclick="copyToClipboard(this)"><i class="fas fa-copy"></i></button>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
@@ -284,6 +293,10 @@
     function generateNewLink(photoId) {
         fetch(`/generate_link/${photoId}`, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
         })
         .then(response => response.json())
         .then(data => {
