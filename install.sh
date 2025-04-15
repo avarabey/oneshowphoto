@@ -11,8 +11,11 @@ sudo apt install -y python3-pip python3-venv nginx python3-dev libjpeg-dev zlib1
 sudo mkdir -p /var/www/photo-share
 sudo chown $USER:$USER /var/www/photo-share
 
-# Clone the repository
-git clone https://github.com/avarabey/oneshowphoto.git /var/www/photo-share
+# Clone the repository and move files
+git clone https://github.com/avarabey/oneshowphoto.git temp_dir
+mv temp_dir/* /var/www/photo-share/
+mv temp_dir/.* /var/www/photo-share/ 2>/dev/null || true
+rm -rf temp_dir
 
 # Setup virtual environment
 cd /var/www/photo-share
