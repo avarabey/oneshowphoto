@@ -12,10 +12,9 @@ sudo mkdir -p /var/www/photo-share
 sudo chown $USER:$USER /var/www/photo-share
 
 # Clone the repository and move files
-git clone https://github.com/avarabey/oneshowphoto.git temp_dir
-mv temp_dir/* /var/www/photo-share/
-mv temp_dir/.* /var/www/photo-share/ 2>/dev/null || true
-rm -rf temp_dir
+cd /var/www/photo-share
+git clone https://github.com/avarabey/oneshowphoto.git .
+rm -rf .git
 
 # Setup virtual environment
 cd /var/www/photo-share
