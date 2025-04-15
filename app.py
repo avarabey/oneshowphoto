@@ -51,6 +51,15 @@ class PhotoView(db.Model):
     user_agent = db.Column(db.Text)
     referrer = db.Column(db.Text)
 
+class PhotoLink(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'), nullable=False)
+    token = db.Column(db.String(100), unique=True, nullable=False)
+    used = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    photo = db.relationship('Photo', backref=db.backref('additional_links', lazy=True))
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -122,23 +131,29 @@ def upload():
 
 @app.route('/share/<token>')
 def share(token):
-    # Ищем фото по любому из четырех токенов
+    # Сначала ищем в основных токенах фото
     photo = Photo.query.filter(
         ((Photo.share_token == token) & (Photo.token_used == False)) | 
         ((Photo.share_token_2 == token) & (Photo.token_2_used == False)) | 
         ((Photo.share_token_3 == token) & (Photo.token_3_used == False)) | 
         ((Photo.share_token_4 == token) & (Photo.token_4_used == False))
-    ).first_or_404()
+    ).first()
     
-    # Отмечаем токен как использованный
-    if photo.share_token == token:
-        photo.token_used = True
-    elif photo.share_token_2 == token:
-        photo.token_2_used = True
-    elif photo.share_token_3 == token:
-        photo.token_3_used = True
-    elif photo.share_token_4 == token:
-        photo.token_4_used = True
+    # Если не нашли, ищем в дополнительных ссылках
+    if not photo:
+        photo_link = PhotoLink.query.filter_by(token=token, used=False).first_or_404()
+        photo = photo_link.photo
+        photo_link.used = True
+    else:
+        # Отмечаем токен как использованный
+        if photo.share_token == token:
+            photo.token_used = True
+        elif photo.share_token_2 == token:
+            photo.token_2_used = True
+        elif photo.share_token_3 == token:
+            photo.token_3_used = True
+        elif photo.share_token_4 == token:
+            photo.token_4_used = True
     
     view = PhotoView(
         photo_id=photo.id,
@@ -205,6 +220,33 @@ def dashboard():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+@app.route('/generate_link/<int:photo_id>', methods=['POST'])
+@login_required
+def generate_link(photo_id):
+    photo = Photo.query.filter_by(id=photo_id, user_id=current_user.id).first_or_404()
+    
+    # Создаем новую запись в таблице PhotoLink
+    new_token = str(uuid.uuid4())
+    
+    # Проверяем, что токен уникален
+    while PhotoLink.query.filter_by(token=new_token).first() is not None:
+        new_token = str(uuid.uuid4())
+    
+    photo_link = PhotoLink(
+        photo_id=photo.id,
+        token=new_token,
+        used=False
+    )
+    
+    db.session.add(photo_link)
+    
+    try:
+        db.session.commit()
+        return jsonify({'success': True, 'token': new_token})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
     with app.app_context():

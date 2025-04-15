@@ -1,129 +1,323 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .photo-container {
-            margin-bottom: 30px;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-        }
-        .photo-image {
-            max-width: 300px;
-            max-height: 300px;
-            margin-bottom: 10px;
-        }
-        .links-container {
-            margin-top: 15px;
-        }
-        .link-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .link-input {
-            flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-        .copy-btn {
-            padding: 8px 12px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .copy-btn:hover {
-            background-color: #45a049;
-        }
-        .generate-links-btn {
-            margin-top: 10px;
-            padding: 10px 15px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .generate-links-btn:hover {
-            background-color: #0b7dda;
-        }
-        .links-section {
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <h1>Your Photos</h1>
-    <a href="{{ url_for('logout') }}">Logout</a>
+{% extends 'base.html' %}
+
+{% block title %}Мои фото | OneShowPhoto{% endblock %}
+
+{% block additional_styles %}
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.upload-form {
+    background-color: white;
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 30px;
+}
+
+.upload-form-header {
+    margin-bottom: 15px;
+}
+
+.file-input-container {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.file-input {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-input-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border: 2px dashed #ddd;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.file-input-label:hover {
+    border-color: var(--primary-color);
+}
+
+.file-input-label i {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.file-name {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--secondary-color);
+}
+
+.photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.photo-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    transition: transform 0.3s;
+}
+
+.photo-card:hover {
+    transform: translateY(-5px);
+}
+
+.photo-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.photo-details {
+    padding: 15px;
+}
+
+.photo-filename {
+    font-size: 14px;
+    color: var(--secondary-color);
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.generate-links-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.generate-links-btn:hover {
+    background-color: #3a5ae8;
+}
+
+.links-section {
+    margin-top: 15px;
+    display: none;
+}
+
+.link-row {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.link-input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    font-size: 12px;
+}
+
+.copy-btn {
+    padding: 8px 12px;
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    cursor: pointer;
+}
+
+.copy-btn:hover {
+    background-color: #218838;
+}
+
+.no-photos {
+    text-align: center;
+    padding: 40px;
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.no-photos i {
+    font-size: 48px;
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+}
+
+.no-photos h2 {
+    margin-bottom: 10px;
+    color: var(--dark-color);
+}
+
+.no-photos p {
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Мои фотографии</h1>
+</div>
+
+<div class="upload-form">
+    <div class="upload-form-header">
+        <h2>Загрузить новое фото</h2>
+    </div>
     
-    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
-        <input type="file" name="photo" accept="image/*">
-        <button type="submit">Upload</button>
+    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+        <div class="file-input-container">
+            <label class="file-input-label" id="fileInputLabel">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Выберите файл или перетащите его сюда</span>
+            </label>
+            <input type="file" name="photo" id="photoInput" class="file-input" accept="image/*">
+        </div>
+        <div class="file-name" id="fileName"></div>
+        <button type="submit" class="btn">Загрузить</button>
     </form>
-    
+</div>
+
+{% if photos %}
+<div class="photos-grid">
     {% for photo in photos %}
-    <div class="photo-container">
+    <div class="photo-card">
         <img src="{{ url_for('get_photo', token=photo.share_token) }}" alt="{{ photo.original_filename }}" class="photo-image">
-        <p>Original filename: {{ photo.original_filename }}</p>
-        
-        <button class="generate-links-btn" onclick="toggleLinks('links-{{ photo.id }}')">Generate Links</button>
-        
-        <div id="links-{{ photo.id }}" class="links-section">
-            <div class="links-container">
+        <div class="photo-details">
+            <div class="photo-filename">{{ photo.original_filename }}</div>
+            <button class="generate-links-btn" onclick="generateNewLink({{ photo.id }})">Сгенерировать новую ссылку</button>
+            
+            <div id="links-{{ photo.id }}" class="links-section">
+                <h4>Доступные ссылки:</h4>
+                {% if not photo.token_used %}
                 <div class="link-row">
                     <input type="text" class="link-input" value="{{ request.url_root }}share/{{ photo.share_token }}" readonly>
-                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                    <button class="copy-btn" onclick="copyToClipboard(this)"><i class="fas fa-copy"></i></button>
                 </div>
+                {% endif %}
+                
+                {% if not photo.token_2_used %}
                 <div class="link-row">
                     <input type="text" class="link-input" value="{{ request.url_root }}share/{{ photo.share_token_2 }}" readonly>
-                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                    <button class="copy-btn" onclick="copyToClipboard(this)"><i class="fas fa-copy"></i></button>
                 </div>
+                {% endif %}
+                
+                {% if not photo.token_3_used %}
                 <div class="link-row">
                     <input type="text" class="link-input" value="{{ request.url_root }}share/{{ photo.share_token_3 }}" readonly>
-                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                    <button class="copy-btn" onclick="copyToClipboard(this)"><i class="fas fa-copy"></i></button>
                 </div>
+                {% endif %}
+                
+                {% if not photo.token_4_used %}
                 <div class="link-row">
                     <input type="text" class="link-input" value="{{ request.url_root }}share/{{ photo.share_token_4 }}" readonly>
-                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                    <button class="copy-btn" onclick="copyToClipboard(this)"><i class="fas fa-copy"></i></button>
                 </div>
+                {% endif %}
+                
+                <!-- Здесь будут отображаться дополнительные ссылки -->
+                <div id="additional-links-{{ photo.id }}"></div>
             </div>
         </div>
     </div>
     {% endfor %}
+</div>
+{% else %}
+<div class="no-photos">
+    <i class="fas fa-images"></i>
+    <h2>У вас пока нет фотографий</h2>
+    <p>Загрузите свою первую фотографию, чтобы начать делиться ею</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Обработка загрузки файла
+    const photoInput = document.getElementById('photoInput');
+    const fileInputLabel = document.getElementById('fileInputLabel');
+    const fileName = document.getElementById('fileName');
     
-    <script>
-        function copyToClipboard(button) {
-            const input = button.previousElementSibling;
-            input.select();
-            document.execCommand('copy');
-            
-            // Change button text temporarily
-            const originalText = button.textContent;
-            button.textContent = 'Copied!';
-            setTimeout(() => {
-                button.textContent = originalText;
-            }, 1500);
+    photoInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            fileName.textContent = this.files[0].name;
+            fileInputLabel.style.borderColor = 'var(--primary-color)';
         }
+    });
+    
+    // Функция для копирования ссылки
+    function copyToClipboard(button) {
+        const input = button.previousElementSibling;
+        input.select();
+        document.execCommand('copy');
         
-        function toggleLinks(id) {
-            const linksSection = document.getElementById(id);
-            if (linksSection.style.display === 'block') {
-                linksSection.style.display = 'none';
-            } else {
+        // Изменяем иконку на время
+        const icon = button.querySelector('i');
+        const originalClass = icon.className;
+        icon.className = 'fas fa-check';
+        
+        setTimeout(() => {
+            icon.className = originalClass;
+        }, 1500);
+    }
+    
+    // Функция для генерации новой ссылки
+    function generateNewLink(photoId) {
+        fetch(`/generate_link/${photoId}`, {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const linksContainer = document.getElementById(`additional-links-${photoId}`);
+                const linkRow = document.createElement('div');
+                linkRow.className = 'link-row';
+                linkRow.innerHTML = `
+                    <input type="text" class="link-input" value="${window.location.origin}/share/${data.token}" readonly>
+                    <button class="copy-btn" onclick="copyToClipboard(this)"><i class="fas fa-copy"></i></button>
+                `;
+                linksContainer.appendChild(linkRow);
+                
+                // Показываем секцию ссылок, если она скрыта
+                const linksSection = document.getElementById(`links-${photoId}`);
                 linksSection.style.display = 'block';
+            } else {
+                alert('Ошибка при генерации ссылки: ' + data.error);
             }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка при генерации ссылки');
+        });
+    }
+    
+    // Функция для отображения/скрытия ссылок
+    function toggleLinks(id) {
+        const linksSection = document.getElementById(id);
+        if (linksSection.style.display === 'block') {
+            linksSection.style.display = 'none';
+        } else {
+            linksSection.style.display = 'block';
         }
-    </script>
-</body>
-</html>
+    }
+</script>
+{% endblock %}
