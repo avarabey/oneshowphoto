@@ -54,7 +54,9 @@ EOF
 
 # Enable the Nginx site
 sudo ln -s /etc/nginx/sites-available/photo-share /etc/nginx/sites-enabled/
-sudo rm /etc/nginx/sites-enabled/default
+if [ -f /etc/nginx/sites-enabled/default ]; then
+    sudo rm /etc/nginx/sites-enabled/default
+fi
 
 # Start and enable services
 sudo systemctl start photo-share
