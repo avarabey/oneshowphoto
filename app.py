@@ -116,7 +116,13 @@ def upload():
 
 @app.route('/share/<token>')
 def share(token):
-    photo = Photo.query.filter_by(share_token=token).first_or_404()
+    # Ищем фото по любому из четырех токенов
+    photo = Photo.query.filter(
+        (Photo.share_token == token) | 
+        (Photo.share_token_2 == token) | 
+        (Photo.share_token_3 == token) | 
+        (Photo.share_token_4 == token)
+    ).first_or_404()
     
     view = PhotoView(
         photo_id=photo.id,
@@ -131,7 +137,14 @@ def share(token):
 
 @app.route('/photo/<token>')
 def get_photo(token):
-    photo = Photo.query.filter_by(share_token=token).first_or_404()
+    # Ищем фото по любому из четырех токенов
+    photo = Photo.query.filter(
+        (Photo.share_token == token) | 
+        (Photo.share_token_2 == token) | 
+        (Photo.share_token_3 == token) | 
+        (Photo.share_token_4 == token)
+    ).first_or_404()
+    
     return send_file(
         os.path.join(app.config['UPLOAD_FOLDER'], photo.filename),
         mimetype='image/jpeg',
