@@ -5,7 +5,7 @@ sudo apt update
 sudo apt upgrade -y
 
 # Install required packages
-sudo apt install -y python3-pip python3-venv nginx
+sudo apt install -y python3-pip python3-venv nginx python3-dev libjpeg-dev zlib1g-dev
 
 # Create application directory
 sudo mkdir -p /var/www/photo-share
