@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
-# Remove this line: from werkzeug.urls import quote as url_quote
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,7 +11,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['SERVER_NAME'] = 'varabey.online'  # Add this line
+# Удаляем SERVER_NAME, так как он мешает прямому доступу
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
@@ -143,4 +142,4 @@ def logout():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)  # Слушаем на всех интерфейсах
