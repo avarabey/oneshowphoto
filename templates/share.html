@@ -1,14 +1,81 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="photo-view">
-    <img src="{{ url_for('get_photo', token=photo.share_token) }}" style="max-width: 100%;">
-</div>
-<script>
-document.addEventListener('contextmenu', event => event.preventDefault());
-document.addEventListener('keydown', event => {
-    if (event.keyCode === 123 || (event.ctrlKey && event.shiftKey && event.keyCode === 73)) {
-        event.preventDefault();
-    }
-});
-</script>
-{% endblock %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shared Photo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .photo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .photo-image {
+            max-width: 100%;
+            max-height: 70vh;
+            margin: 20px 0;
+            pointer-events: none; /* Запрещаем перетаскивание */
+            user-select: none; /* Запрещаем выделение */
+        }
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #e74c3c;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="photo-container">
+        <h1>Shared Photo</h1>
+        <div class="timer" id="timer">10</div>
+        <img src="{{ url_for('get_photo', token=token) }}" alt="Shared Photo" class="photo-image" 
+             oncontextmenu="return false;" draggable="false">
+        <div class="message" id="message">This photo has expired and is no longer available.</div>
+    </div>
+
+    <script>
+        // Запрещаем контекстное меню
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        
+        // Запрещаем перетаскивание
+        document.addEventListener('dragstart', event => event.preventDefault());
+        
+        // Запрещаем копирование
+        document.addEventListener('copy', event => event.preventDefault());
+        
+        // Таймер для исчезновения фото
+        let timeLeft = 10;
+        const timerElement = document.getElementById('timer');
+        const photoElement = document.querySelector('.photo-image');
+        const messageElement = document.getElementById('message');
+        
+        const countdown = setInterval(() => {
+            timeLeft--;
+            timerElement.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                photoElement.style.display = 'none';
+                messageElement.style.display = 'block';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

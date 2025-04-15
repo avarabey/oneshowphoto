@@ -6,6 +6,8 @@ import os
 import uuid
 from datetime import datetime
 import json
+from PIL import Image, ImageDraw, ImageFont
+import io
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -34,6 +36,10 @@ class Photo(db.Model):
     share_token_2 = db.Column(db.String(100), unique=True)
     share_token_3 = db.Column(db.String(100), unique=True)
     share_token_4 = db.Column(db.String(100), unique=True)
+    token_used = db.Column(db.Boolean, default=False)
+    token_2_used = db.Column(db.Boolean, default=False)
+    token_3_used = db.Column(db.Boolean, default=False)
+    token_4_used = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     views = db.relationship('PhotoView', backref='photo', lazy=True)
 
@@ -118,11 +124,21 @@ def upload():
 def share(token):
     # Ищем фото по любому из четырех токенов
     photo = Photo.query.filter(
-        (Photo.share_token == token) | 
-        (Photo.share_token_2 == token) | 
-        (Photo.share_token_3 == token) | 
-        (Photo.share_token_4 == token)
+        ((Photo.share_token == token) & (Photo.token_used == False)) | 
+        ((Photo.share_token_2 == token) & (Photo.token_2_used == False)) | 
+        ((Photo.share_token_3 == token) & (Photo.token_3_used == False)) | 
+        ((Photo.share_token_4 == token) & (Photo.token_4_used == False))
     ).first_or_404()
+    
+    # Отмечаем токен как использованный
+    if photo.share_token == token:
+        photo.token_used = True
+    elif photo.share_token_2 == token:
+        photo.token_2_used = True
+    elif photo.share_token_3 == token:
+        photo.token_3_used = True
+    elif photo.share_token_4 == token:
+        photo.token_4_used = True
     
     view = PhotoView(
         photo_id=photo.id,
@@ -133,7 +149,7 @@ def share(token):
     db.session.add(view)
     db.session.commit()
     
-    return render_template('share.html', photo=photo)
+    return render_template('share.html', photo=photo, token=token, ip_address=request.remote_addr)
 
 @app.route('/photo/<token>')
 def get_photo(token):
@@ -145,8 +161,36 @@ def get_photo(token):
         (Photo.share_token_4 == token)
     ).first_or_404()
     
+    # Открываем изображение и добавляем водяной знак
+    img_path = os.path.join(app.config['UPLOAD_FOLDER'], photo.filename)
+    img = Image.open(img_path)
+    
+    # Добавляем водяной знак с IP-адресом
+    draw = ImageDraw.Draw(img)
+    try:
+        font = ImageFont.truetype("arial.ttf", 36)
+    except IOError:
+        font = ImageFont.load_default()
+    
+    watermark_text = f"IP: {request.remote_addr}"
+    text_width, text_height = draw.textsize(watermark_text, font=font)
+    position = (img.width - text_width - 10, img.height - text_height - 10)
+    
+    # Полупрозрачный фон для текста
+    draw.rectangle(
+        [(position[0] - 5, position[1] - 5), 
+         (position[0] + text_width + 5, position[1] + text_height + 5)], 
+        fill=(0, 0, 0, 128)
+    )
+    draw.text(position, watermark_text, fill=(255, 255, 255, 255), font=font)
+    
+    # Сохраняем изображение во временный буфер
+    img_io = io.BytesIO()
+    img.save(img_io, format='JPEG')
+    img_io.seek(0)
+    
     return send_file(
-        os.path.join(app.config['UPLOAD_FOLDER'], photo.filename),
+        img_io,
         mimetype='image/jpeg',
         as_attachment=False
     )
