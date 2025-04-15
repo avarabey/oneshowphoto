@@ -31,6 +31,9 @@ class Photo(db.Model):
     filename = db.Column(db.String(200), nullable=False)
     original_filename = db.Column(db.String(200), nullable=False)
     share_token = db.Column(db.String(100), unique=True)
+    share_token_2 = db.Column(db.String(100), unique=True)
+    share_token_3 = db.Column(db.String(100), unique=True)
+    share_token_4 = db.Column(db.String(100), unique=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     views = db.relationship('PhotoView', backref='photo', lazy=True)
 
@@ -101,6 +104,9 @@ def upload():
             filename=filename,
             original_filename=photo.filename,
             share_token=str(uuid.uuid4()),
+            share_token_2=str(uuid.uuid4()),
+            share_token_3=str(uuid.uuid4()),
+            share_token_4=str(uuid.uuid4()),
             user_id=current_user.id
         )
         db.session.add(new_photo)

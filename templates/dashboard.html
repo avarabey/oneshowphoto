@@ -1,23 +1,129 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Dashboard</h2>
-<form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
-    <div class="form-group">
-        <label>Upload Photo:</label>
-        <input type="file" name="photo" accept="image/*" required>
-    </div>
-    <button type="submit" class="btn">Upload</button>
-</form>
-
-<h3>Your Photos</h3>
-<div class="photo-grid">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .photo-container {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .photo-image {
+            max-width: 300px;
+            max-height: 300px;
+            margin-bottom: 10px;
+        }
+        .links-container {
+            margin-top: 15px;
+        }
+        .link-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .link-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .copy-btn {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .copy-btn:hover {
+            background-color: #45a049;
+        }
+        .generate-links-btn {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .generate-links-btn:hover {
+            background-color: #0b7dda;
+        }
+        .links-section {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Your Photos</h1>
+    <a href="{{ url_for('logout') }}">Logout</a>
+    
+    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+        <input type="file" name="photo" accept="image/*">
+        <button type="submit">Upload</button>
+    </form>
+    
     {% for photo in photos %}
-    <div class="photo-item">
-        <img src="{{ url_for('get_photo', token=photo.share_token) }}" style="width: 100%;">
-        <p>Share link: <input type="text" value="{{ url_for('share', token=photo.share_token, _external=True) }}" readonly></p>
-        <p>Views: {{ photo.views|length }}</p>
+    <div class="photo-container">
+        <img src="{{ url_for('get_photo', token=photo.share_token) }}" alt="{{ photo.original_filename }}" class="photo-image">
+        <p>Original filename: {{ photo.original_filename }}</p>
+        
+        <button class="generate-links-btn" onclick="toggleLinks('links-{{ photo.id }}')">Generate Links</button>
+        
+        <div id="links-{{ photo.id }}" class="links-section">
+            <div class="links-container">
+                <div class="link-row">
+                    <input type="text" class="link-input" value="{{ request.url_root }}share/{{ photo.share_token }}" readonly>
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                </div>
+                <div class="link-row">
+                    <input type="text" class="link-input" value="{{ request.url_root }}share/{{ photo.share_token_2 }}" readonly>
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                </div>
+                <div class="link-row">
+                    <input type="text" class="link-input" value="{{ request.url_root }}share/{{ photo.share_token_3 }}" readonly>
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                </div>
+                <div class="link-row">
+                    <input type="text" class="link-input" value="{{ request.url_root }}share/{{ photo.share_token_4 }}" readonly>
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                </div>
+            </div>
+        </div>
     </div>
     {% endfor %}
-</div>
-<p><a href="{{ url_for('logout') }}">Logout</a></p>
-{% endblock %}
+    
+    <script>
+        function copyToClipboard(button) {
+            const input = button.previousElementSibling;
+            input.select();
+            document.execCommand('copy');
+            
+            // Change button text temporarily
+            const originalText = button.textContent;
+            button.textContent = 'Copied!';
+            setTimeout(() => {
+                button.textContent = originalText;
+            }, 1500);
+        }
+        
+        function toggleLinks(id) {
+            const linksSection = document.getElementById(id);
+            if (linksSection.style.display === 'block') {
+                linksSection.style.display = 'none';
+            } else {
+                linksSection.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
