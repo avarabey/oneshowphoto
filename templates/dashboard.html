@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Dashboard</h2>
+<form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+        <label>Upload Photo:</label>
+        <input type="file" name="photo" accept="image/*" required>
+    </div>
+    <button type="submit" class="btn">Upload</button>
+</form>
+
+<h3>Your Photos</h3>
+<div class="photo-grid">
+    {% for photo in photos %}
+    <div class="photo-item">
+        <img src="{{ url_for('get_photo', token=photo.share_token) }}" style="width: 100%;">
+        <p>Share link: <input type="text" value="{{ url_for('share', token=photo.share_token, _external=True) }}" readonly></p>
+        <p>Views: {{ photo.views|length }}</p>
+    </div>
+    {% endfor %}
+</div>
+<p><a href="{{ url_for('logout') }}">Logout</a></p>
+{% endblock %}

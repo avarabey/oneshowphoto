@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="photo-view">
+    <img src="{{ url_for('get_photo', token=photo.share_token) }}" style="max-width: 100%;">
+</div>
+<script>
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('keydown', event => {
+    if (event.keyCode === 123 || (event.ctrlKey && event.shiftKey && event.keyCode === 73)) {
+        event.preventDefault();
+    }
+});
+</script>
+{% endblock %}
